@@ -1,19 +1,22 @@
 # Workforce Attrition Ledger — HR Analytics Project
 
-A four-part HR analytics project built around one dataset (the well-known IBM HR Analytics
-Attrition dataset, 1,470 employees) — because Deloitte's Human Capital practice cares about
-exactly this kind of workforce analytics, and because a Data Analyst role typically expects
-comfort across SQL, Python, a BI tool, and basic app-building, not just one of them.
+A three-part HR analytics project built around the IBM HR Analytics Attrition dataset
+(1,470 employees). It combines a full-stack dashboard, SQL analysis, and Python analysis.
 
 | Part | What it is | Folder |
 |---|---|---|
 | **1. Full-stack dashboard** | MERN app: MongoDB aggregation pipelines, React + Recharts frontend | `backend/`, `frontend/` |
 | **2. SQL analysis** | Normalized SQLite database + 9 queries (joins, window functions, CTEs) | `sql-analysis/` |
 | **3. Python EDA & ML** | Jupyter notebook: EDA, correlation, chi-square tests, Logistic Regression + Random Forest | `python-analysis/` |
-| **4. Power BI dashboard** | Ready-to-import dataset + step-by-step build guide with DAX measures | `powerbi/` |
-
-All four work from the same underlying data, so the findings agree with each other — that
+All three work from the same underlying data, so the findings agree with each other — that
 consistency across tools is itself worth pointing out in an interview.
+
+## Tech stack
+
+- **Frontend:** React, Vite, Recharts, Axios
+- **Backend:** Node.js, Express, MongoDB, Mongoose, CORS, dotenv
+- **SQL analysis:** SQLite and Python's built-in `sqlite3` module
+- **Python analysis:** Python, Jupyter, pandas, NumPy, SciPy, scikit-learn, Matplotlib, Seaborn
 
 ---
 
@@ -46,24 +49,20 @@ hr-analytics-project/
 │   ├── eda_and_modeling.ipynb   (ships pre-run, with outputs/plots)
 │   ├── requirements.txt
 │   └── data/employees.csv
-└── powerbi/                     Power BI dashboard build kit
-    ├── DASHBOARD_GUIDE.md
-    └── data/hr_analytics_for_bi.csv
 ```
 
-Each folder also has its own `README.md` with more detail — this file covers the whole project
-and how to run the MERN app specifically.
+This file covers the complete project and how to run the dashboard locally.
 
 ---
 
-## 2. Run the MERN app locally in VS Code
+## Run the dashboard locally
 
 ### Prerequisites
 - Node.js 18+ and npm (`node -v` to check)
-- A free MongoDB Atlas cluster (takes ~5 minutes, see below) — you don't need to install
-  MongoDB on your machine.
+- MongoDB Atlas, or no database setup: the backend automatically uses an in-memory MongoDB
+  server when `MONGO_URI` is not configured.
 
-### 2.1 Get a MongoDB connection string
+### Optional: configure MongoDB Atlas
 1. Go to [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas) and create a free account.
 2. Create a free **M0 cluster**.
 3. Under **Database Access**, add a database user (username + password).
@@ -72,19 +71,18 @@ and how to run the MERN app specifically.
 5. Click **Connect → Drivers**, copy the connection string. It looks like:
    `mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/`
 
-### 2.2 Backend
+### Backend
 ```bash
 cd backend
 npm install
 cp .env.example .env
-# open .env and paste your MongoDB connection string into MONGO_URI
-# (add a database name at the end, e.g. .../hr_analytics)
+# Add your MongoDB connection string to MONGO_URI when using MongoDB Atlas.
 
 npm run seed     # parses employees.csv and loads it into MongoDB (run once)
 npm run dev      # starts the API on http://localhost:5000
 ```
 
-### 2.3 Frontend
+### Frontend
 Open a **second terminal**:
 ```bash
 cd frontend
@@ -97,7 +95,7 @@ local backend.
 
 ---
 
-## 3. Running the other three parts
+## Run the analysis projects
 
 - **SQL**: `cd sql-analysis && python3 load_data.py` rebuilds `hr_analytics.db`; open it with
   the VS Code SQLite extension, DB Browser for SQLite, or the `sqlite3` CLI and run
@@ -105,12 +103,9 @@ local backend.
 - **Python**: `cd python-analysis && pip install -r requirements.txt && jupyter notebook
   eda_and_modeling.ipynb`. The notebook ships pre-run with all outputs and plots already
   visible. Full details in `python-analysis/README.md`.
-- **Power BI**: open `powerbi/DASHBOARD_GUIDE.md` and follow the steps, importing
-  `powerbi/data/hr_analytics_for_bi.csv`. Takes about 30–45 minutes the first time.
-
 ---
 
-## 4. How the MERN app's analytics work
+## How the dashboard works
 
 - **Aggregation, not app-level loops.** Every chart is powered by a MongoDB aggregation
   pipeline (`$group`, `$bucket`, `$project`) in `controllers/analyticsController.js` — this is
@@ -127,35 +122,10 @@ local backend.
 
 ---
 
-## 5. Deploying the MERN app (Render)
+## Technical notes
 
-**Backend (Web Service)**
-1. Push this repo to GitHub.
-2. On Render: New → Web Service → connect the repo, set **root directory** to `backend`.
-3. Build command: `npm install`. Start command: `npm start`.
-4. Add environment variable `MONGO_URI` (same value as your local `.env`) and `CLIENT_ORIGIN`
-   set to your deployed frontend URL once you have it.
-
-**Frontend (Static Site)**
-1. On Render: New → Static Site → same repo, **root directory** `frontend`.
-2. Build command: `npm run build`. Publish directory: `dist`.
-3. Add environment variable `VITE_API_URL` = `https://your-backend.onrender.com/api`.
-
-(SQL/Python/Power BI are local analysis artifacts — nothing to deploy there. If you want a
-public link for the SQL/Python work, upload `eda_and_modeling.ipynb` to GitHub, which renders
-notebooks with outputs automatically.)
-
----
-
-## 6. Talking points for your interview
-
-**Why four parts instead of one:** the JD asks for SQL, Python, and a BI tool specifically —
-so this project demonstrates each one directly on the same dataset, instead of hoping one
-full-stack app implies all of them. Framing it that way (rather than pretending it's all one
-seamless pipeline) is the honest and, frankly, more impressive story.
-
-**MERN app**
-- Why MongoDB aggregation instead of pulling all rows and computing in JS: it scales to
+**Dashboard**
+- MongoDB aggregation is used instead of pulling all rows into JavaScript:
   millions of rows without ever loading them into app memory, and it's the direct NoSQL
   equivalent of `GROUP BY`.
 - Why `$bucket` for age/income: buckets need custom, uneven ranges (e.g. `<3k`, `3k-6k`) that a
@@ -165,7 +135,7 @@ seamless pipeline) is the honest and, frankly, more impressive story.
 - Pagination + debounced search in the Employee Explorer: the search box waits 350ms after you
   stop typing before calling the API.
 
-**SQL**
+**SQL analysis**
 - Why 3 normalized tables instead of 1 flat table: so joins are real, not decorative. `job_roles`
   isn't nested under `departments` because the `Manager` role spans all three departments in
   this data — forcing a 1:1 mapping would have been wrong.
@@ -174,7 +144,7 @@ seamless pipeline) is the honest and, frankly, more impressive story.
   can't: compare a row to its own group average, split into quartiles, or accumulate a total —
   without a self-join or app-level loop.
 
-**Python**
+**Python analysis**
 - Correlation only works on numeric columns; chi-square tests whether a categorical split
   (department, overtime, marital status) is statistically real or just noise (p < 0.05 cutoff).
 - `class_weight='balanced'` matters because only ~16% of employees left — an unweighted model
@@ -183,11 +153,8 @@ seamless pipeline) is the honest and, frankly, more impressive story.
   Regression in this run — a real trade-off, not a mistake, and a good one to be ready to
   explain: for retention, missing an at-risk employee costs more than a false alarm.
 
-**Data cleaning (applies everywhere)**
+**Data cleaning**
 - The raw CSV has constant columns (`EmployeeCount`, `Over18`, `StandardHours` — identical on
   every row) dropped as noise, and a UTF-8 BOM character on the first header that had to be
   stripped before parsing — small, but a real cleaning step worth mentioning if asked.
 
-**Power BI**
-- DAX measures (`Attrition Rate`, `Risk Score`) mirror the same logic used in the Node backend
-  and the SQL query pack — same business rule, three different tools, same answer.
