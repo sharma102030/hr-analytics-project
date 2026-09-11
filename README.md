@@ -1,160 +1,165 @@
-# Workforce Attrition Ledger — HR Analytics Project
+# HR Attrition Analytics Platform
 
-A three-part HR analytics project built around the IBM HR Analytics Attrition dataset
-(1,470 employees). It combines a full-stack dashboard, SQL analysis, and Python analysis.
+An end-to-end workforce analytics platform built on an HR dataset of **1,470 employees**. The project combines a React dashboard, Node.js/Express API, MongoDB aggregations, normalized SQL analysis, and Python-based statistical modeling to identify employee-attrition patterns and surface at-risk employee groups.
 
-| Part | What it is | Folder |
-|---|---|---|
-| **1. Full-stack dashboard** | MERN app: MongoDB aggregation pipelines, React + Recharts frontend | `backend/`, `frontend/` |
-| **2. SQL analysis** | Normalized SQLite database + 9 queries (joins, window functions, CTEs) | `sql-analysis/` |
-| **3. Python EDA & ML** | Jupyter notebook: EDA, correlation, chi-square tests, Logistic Regression + Random Forest | `python-analysis/` |
-All three work from the same underlying data, so the findings agree with each other — that
-consistency across tools is itself worth pointing out in an interview.
+## Resume highlights
+
+- Built a full-stack workforce analytics platform with **React, Node.js, Express, and MongoDB** to analyze attrition across departments, age groups, job roles, and income bands.
+- Designed a normalized SQL schema and authored **9 analytical queries** using joins, CTEs, aggregations, conditional bucketing, and window functions.
+- Performed exploratory data analysis, correlation analysis, and chi-square testing in Python to identify factors associated with attrition.
+- Built and compared **Logistic Regression** and **Random Forest** models for employee attrition prediction and workforce-risk analysis.
+
+## What the platform answers
+
+- What is the overall attrition rate, and which departments have the highest rates?
+- How does attrition vary by age group, job role, salary band, tenure, and overtime?
+- Which employee characteristics are statistically associated with attrition?
+- Which employees should be prioritized for retention outreach based on an explainable flight-risk score?
+- Which predictive-model trade-offs matter when the goal is to avoid missing at-risk employees?
+
+## Platform capabilities
+
+| Area | Capability |
+| --- | --- |
+| Dashboard | Interactive summaries and charts for attrition by department, age group, income band, and overtime status. |
+| Employee explorer | Paginated employee search with department filters and rule-based risk labels. |
+| MongoDB analytics | Aggregation pipelines calculate dashboard metrics in the database instead of loading all records into application memory. |
+| SQL analysis | A normalized SQLite database and a nine-query analysis pack demonstrate relational analytics techniques. |
+| Python analysis | EDA, correlation analysis, chi-square tests, and comparative machine-learning baselines are documented in a pre-run notebook. |
 
 ## Tech stack
 
 - **Frontend:** React, Vite, Recharts, Axios
-- **Backend:** Node.js, Express, MongoDB, Mongoose, CORS, dotenv
-- **SQL analysis:** SQLite and Python's built-in `sqlite3` module
-- **Python analysis:** Python, Jupyter, pandas, NumPy, SciPy, scikit-learn, Matplotlib, Seaborn
+- **Backend:** Node.js, Express, Mongoose, MongoDB, CORS, dotenv
+- **SQL:** SQLite and Python `sqlite3`
+- **Data science:** Python, Jupyter, pandas, NumPy, SciPy, scikit-learn, Matplotlib, Seaborn
 
----
+## Architecture
 
-## 1. Project structure
-
+```text
+Employee CSV (1,470 records)
+        |
+        +--> MongoDB --> Express REST API --> React analytics dashboard
+        |
+        +--> Normalized SQLite schema --> 9 SQL analytical queries
+        |
+        +--> Python notebook --> EDA, statistical tests, ML model comparison
 ```
+
+All three analysis paths use the same employee dataset, which keeps dashboard trends, SQL findings, and notebook results aligned.
+
+## SQL analysis
+
+The SQL module uses three normalized tables: `employees`, `departments`, and `job_roles`. It includes nine queries that cover the following business questions and techniques:
+
+| # | Analysis | Techniques |
+| --- | --- | --- |
+| 1 | Attrition rate by department | `JOIN`, `GROUP BY`, aggregation |
+| 2 | Attrition rate by department and job role | multiple `JOIN`s, `HAVING` |
+| 3 | Attrition by tenure band | `CASE WHEN` bucketing |
+| 4 | Attrition by income band | `CASE WHEN` bucketing |
+| 5 | Income rank within department | `RANK()`, `AVG() OVER` |
+| 6 | Attrition by income quartile | `NTILE()`, CTE |
+| 7 | Departments above the company average | chained CTEs |
+| 8 | Flight-risk employees | CTE, joins, conditional scoring |
+| 9 | Cumulative leavers by tenure | running-total window function |
+
+See [sql-analysis/README.md](sql-analysis/README.md) for setup details and [sql-analysis/queries.sql](sql-analysis/queries.sql) for the full query pack.
+
+## Python EDA and modeling
+
+The Jupyter notebook documents the complete analytical workflow:
+
+1. Cleans the source data and removes constant, non-informative columns.
+2. Explores attrition patterns using department, income, and overtime visualizations.
+3. Measures numeric relationships through correlation analysis.
+4. Tests categorical relationships with chi-square tests of independence.
+5. Prepares a stratified train/test split and one-hot encoded features.
+6. Trains and evaluates Logistic Regression and Random Forest classifiers.
+7. Compares accuracy, recall, feature importance, coefficients, confusion matrices, and ROC curves.
+
+Attrition is an imbalanced target (roughly 16% of employees left), so the models use class balancing and are assessed beyond accuracy alone. In retention use cases, recall is particularly important because failing to flag an employee likely to leave can be more costly than a false positive.
+
+See [python-analysis/README.md](python-analysis/README.md) or open the pre-run [notebook](python-analysis/eda_and_modeling.ipynb).
+
+## Project structure
+
+```text
 hr-analytics-project/
-├── backend/                    MERN backend (Node/Express/MongoDB)
-│   ├── server.js               Express app entry point
-│   ├── config/db.js            MongoDB connection
-│   ├── models/Employee.js      Mongoose schema
-│   ├── controllers/            Route handlers (aggregation pipelines live here)
-│   ├── routes/                 Express routers
-│   ├── seed/seedDatabase.js    Loads data/employees.csv into MongoDB
-│   ├── utils/riskScore.js      Rule-based "flight risk" scoring
-│   └── data/employees.csv      The dataset
-├── frontend/                   MERN frontend (React + Vite + Recharts)
-│   ├── index.html
-│   └── src/
-│       ├── App.jsx             Fetches data, lays out the dashboard
-│       ├── api/client.js       Axios instance
-│       ├── theme.js            Shared chart colors
-│       └── components/         One file per dashboard section
-├── sql-analysis/                Normalized SQLite DB + query pack
-│   ├── schema.sql
-│   ├── load_data.py
-│   ├── queries.sql
-│   └── hr_analytics.db
-├── python-analysis/             EDA, stats tests, ML models
-│   ├── eda_and_modeling.ipynb   (ships pre-run, with outputs/plots)
-│   ├── requirements.txt
-│   └── data/employees.csv
+|-- backend/                 Express API, MongoDB models, controllers, seed script
+|-- frontend/                React and Recharts dashboard
+|-- sql-analysis/            SQLite schema, loader, database, and 9-query pack
+|-- python-analysis/         EDA and machine-learning notebook
+`-- README.md
 ```
 
-This file covers the complete project and how to run the dashboard locally.
-
----
-
-## Run the dashboard locally
+## Run locally
 
 ### Prerequisites
-- Node.js 18+ and npm (`node -v` to check)
-- MongoDB Atlas, or no database setup: the backend automatically uses an in-memory MongoDB
-  server when `MONGO_URI` is not configured.
 
-### Optional: configure MongoDB Atlas
-1. Go to [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas) and create a free account.
-2. Create a free **M0 cluster**.
-3. Under **Database Access**, add a database user (username + password).
-4. Under **Network Access**, add IP address `0.0.0.0/0` (allow access from anywhere — fine for
-   a personal project).
-5. Click **Connect → Drivers**, copy the connection string. It looks like:
-   `mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/`
+- Node.js 18+ and npm
+- Python 3.9+ for SQL rebuilding and the notebook
+- MongoDB Atlas is optional. When `MONGO_URI` is absent, the backend uses an in-memory MongoDB instance.
 
-### Backend
+### 1. Start the backend
+
 ```bash
 cd backend
 npm install
-cp .env.example .env
-# Add your MongoDB connection string to MONGO_URI when using MongoDB Atlas.
-
-npm run seed     # parses employees.csv and loads it into MongoDB (run once)
-npm run dev      # starts the API on http://localhost:5000
 ```
 
-### Frontend
-Open a **second terminal**:
+Copy `.env.example` to `.env`, then set `MONGO_URI` if you want to use MongoDB Atlas. The included development defaults are sufficient for local use without Atlas.
+
+```bash
+npm run dev
+```
+
+The API runs at `http://localhost:5000` and seeds the database automatically when it is empty. To reset a configured persistent MongoDB database from the source CSV, run `npm run seed`.
+
+### 2. Start the frontend
+
+In a second terminal:
+
 ```bash
 cd frontend
 npm install
-cp .env.example .env    # already points at http://localhost:5000/api, no changes needed
-npm run dev              # starts on http://localhost:5173
 ```
-Open http://localhost:5173 in your browser. The dashboard fetches everything from your
-local backend.
 
----
+Copy `.env.example` to `.env`, then run:
 
-## Run the analysis projects
+```bash
+npm run dev
+```
 
-- **SQL**: `cd sql-analysis && python3 load_data.py` rebuilds `hr_analytics.db`; open it with
-  the VS Code SQLite extension, DB Browser for SQLite, or the `sqlite3` CLI and run
-  `queries.sql`. Full details in `sql-analysis/README.md`.
-- **Python**: `cd python-analysis && pip install -r requirements.txt && jupyter notebook
-  eda_and_modeling.ipynb`. The notebook ships pre-run with all outputs and plots already
-  visible. Full details in `python-analysis/README.md`.
----
+Open `http://localhost:5173` in your browser.
 
-## How the dashboard works
+### 3. Run the analysis modules
 
-- **Aggregation, not app-level loops.** Every chart is powered by a MongoDB aggregation
-  pipeline (`$group`, `$bucket`, `$project`) in `controllers/analyticsController.js` — this is
-  the same idea as `SELECT ... GROUP BY` in SQL, just expressed as pipeline stages. The
-  database does the counting, not a `for` loop in Node.
-- **Risk scoring is a rule, not a model** in this layer. `utils/riskScore.js` adds points for
-  overtime, a long promotion gap, low satisfaction, and poor work-life balance, then buckets
-  the score into Low/Medium/High. (The Python layer adds an actual trained model on top of
-  this — see `python-analysis/`.)
-- **The dashboard tells you *why*, not just *what*.** The "Key Drivers" section compares
-  average values (income, tenure, distance from home, satisfaction) between employees who left
-  and those who stayed, so every chart takeaway sentence you see is computed from the live
-  data, not hardcoded.
+```bash
+# Rebuild and query the normalized SQLite database
+cd sql-analysis
+python load_data.py
 
----
+# Open the EDA and modeling notebook
+cd ../python-analysis
+pip install -r requirements.txt
+jupyter notebook eda_and_modeling.ipynb
+```
 
-## Technical notes
+## API endpoints
 
-**Dashboard**
-- MongoDB aggregation is used instead of pulling all rows into JavaScript:
-  millions of rows without ever loading them into app memory, and it's the direct NoSQL
-  equivalent of `GROUP BY`.
-- Why `$bucket` for age/income: buckets need custom, uneven ranges (e.g. `<3k`, `3k-6k`) that a
-  simple `$group` on the raw value can't express.
-- Why the risk flag here is rule-based, not ML: transparent, no training data or model
-  maintenance, weights drawn from the Key Drivers analysis, not guessed.
-- Pagination + debounced search in the Employee Explorer: the search box waits 350ms after you
-  stop typing before calling the API.
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /api/health` | API health check |
+| `GET /api/analytics/summary` | Headline workforce and attrition metrics |
+| `GET /api/analytics/by-department` | Attrition by department |
+| `GET /api/analytics/by-age-group` | Attrition by age band |
+| `GET /api/analytics/by-income-band` | Attrition by income band |
+| `GET /api/analytics/overtime-impact` | Overtime and attrition relationship |
+| `GET /api/analytics/drivers` | Key-driver comparisons for leavers and stayers |
+| `GET /api/employees` | Paginated, searchable employee data |
+| `GET /api/employees/departments` | Available department filters |
 
-**SQL analysis**
-- Why 3 normalized tables instead of 1 flat table: so joins are real, not decorative. `job_roles`
-  isn't nested under `departments` because the `Manager` role spans all three departments in
-  this data — forcing a 1:1 mapping would have been wrong.
-- `$bucket`-style logic reappears as `CASE WHEN` here — same idea, different engine.
-- Window functions (`RANK() OVER`, `NTILE()`, running totals) do things a plain `GROUP BY`
-  can't: compare a row to its own group average, split into quartiles, or accumulate a total —
-  without a self-join or app-level loop.
+## Dataset note
 
-**Python analysis**
-- Correlation only works on numeric columns; chi-square tests whether a categorical split
-  (department, overtime, marital status) is statistically real or just noise (p < 0.05 cutoff).
-- `class_weight='balanced'` matters because only ~16% of employees left — an unweighted model
-  could hit ~84% accuracy by just predicting "stayed" for everyone and be useless.
-- Random Forest had higher accuracy but noticeably lower recall on leavers than Logistic
-  Regression in this run — a real trade-off, not a mistake, and a good one to be ready to
-  explain: for retention, missing an at-risk employee costs more than a false alarm.
-
-**Data cleaning**
-- The raw CSV has constant columns (`EmployeeCount`, `Over18`, `StandardHours` — identical on
-  every row) dropped as noise, and a UTF-8 BOM character on the first header that had to be
-  stripped before parsing — small, but a real cleaning step worth mentioning if asked.
-
+This project uses the IBM HR Analytics Attrition dataset for educational and portfolio purposes. The records are not real employee data; conclusions should be treated as analytical demonstrations, not HR policy recommendations.
